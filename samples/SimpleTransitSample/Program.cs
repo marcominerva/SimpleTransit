@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Text.RegularExpressions;
 using SimpleTransit;
 using SimpleTransit.Abstractions;
 
@@ -7,7 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSimpleTransit(options =>
 {
-    options.UnhandledExceptionBehavior = UnhandledExceptionBehavior.Throw;
+    options.UnhandledExceptionBehavior = UnhandledExceptionBehavior.Continue;
+    options.PublishStrategy = PublishStrategy.AwaitWhenAll;
+
     options.RegisterServiceFromAssemblyContaining<Program>();
 });
 
@@ -36,11 +39,21 @@ app.MapPost("api/test", async (INotificator notificator) =>
 
 app.Run();
 
-public class Sample : INotificationHandler<Point>, IDisposable
+public class Sample : INotificationHandler<Point>, INotificationHandler<Regex>, IDisposable
 {
     public void Dispose()
         => throw new NotImplementedException();
 
-    public Task HandleAsync(Point notification, CancellationToken cancellationToken = default)
+    public Task HandleAsync(Point notification, CancellationToken cancellationToken)
         => throw new NotImplementedException();
+
+    public Task HandleAsync(Regex notification, CancellationToken cancellationToken) => Task.CompletedTask;
+}
+
+public class Sample2 : INotificationHandler<Point>, IDisposable
+{
+    public void Dispose()
+        => throw new NotImplementedException();
+
+    public Task HandleAsync(Point notification, CancellationToken cancellationToken) => Task.CompletedTask;
 }

@@ -15,7 +15,8 @@ public static class SimpleTransitExtensions
 
         services.AddSingleton(new SimpleTransitOptions
         {
-            UnhandledExceptionBehavior = configuration.UnhandledExceptionBehavior
+            UnhandledExceptionBehavior = configuration.UnhandledExceptionBehavior,
+            PublishStrategy = configuration.PublishStrategy
         });
 
         return services;

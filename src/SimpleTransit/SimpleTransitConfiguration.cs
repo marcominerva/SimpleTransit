@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using SimpleTransit.Abstractions;
 
 namespace SimpleTransit;
@@ -14,7 +13,9 @@ public class SimpleTransitConfiguration
         this.services = services;
     }
 
-    public UnhandledExceptionBehavior UnhandledExceptionBehavior { get; set; } = UnhandledExceptionBehavior.Continue;
+    public UnhandledExceptionBehavior UnhandledExceptionBehavior { get; set; } = UnhandledExceptionBehavior.Throw;
+
+    public PublishStrategy PublishStrategy { get; set; } = PublishStrategy.AwaitForEach;
 
     public SimpleTransitConfiguration RegisterServiceFromAssemblyContaining<T>()
         => RegisterServiceFromAssembly(typeof(T).Assembly);
@@ -35,7 +36,7 @@ public class SimpleTransitConfiguration
 
             foreach (var @interface in interfaces)
             {
-                services.TryAddTransient(@interface, type);
+                services.AddTransient(@interface, type);
             }
         }
 

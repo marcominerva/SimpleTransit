@@ -9,7 +9,30 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
     public async Task NotifyAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default)
     {
         var handlers = serviceProvider.GetServices<INotificationHandler<TMessage>>().ToList();
+        if (handlers.Count == 0)
+        {
+            return;
+        }
 
+        if (options.PublishStrategy == PublishStrategy.AwaitForEach)
+        {
+            await AwaitForEachAsync(notification, handlers, cancellationToken);
+        }
+        else if (options.PublishStrategy == PublishStrategy.AwaitWhenAll)
+        {
+            if (options.UnhandledExceptionBehavior == UnhandledExceptionBehavior.Continue)
+            {
+                // When using AwaitWhenAll, we cannot throw exceptions if an exception occurs in one of the handlers,
+                // because it will not be caught until all tasks are completed, so the Throw options will be ignored.
+                logger.LogWarning("The 'AwaitWhenAll' PublishStrategy cannot be used when UnhandledExceptionBehavior is set to 'Throw', so the current UnhandledExceptionBehavior will be ignored");
+            }
+
+            await AwaitWhenAllAsync(notification, handlers, cancellationToken);
+        }
+    }
+
+    private async Task AwaitForEachAsync<TMessage>(TMessage notification, List<INotificationHandler<TMessage>> handlers, CancellationToken cancellationToken)
+    {
         foreach (var handler in handlers)
         {
             try
@@ -23,16 +46,28 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
 
                 if (options.UnhandledExceptionBehavior == UnhandledExceptionBehavior.Throw)
                 {
-                    // If the behavior is to stop on unhandled exceptions, rethrow the exception
+                    // If the behavior is to stop on unhandled exceptions, rethrow the exception.
+                    // Otherwise, continue with the next handler.
                     throw;
                 }
             }
         }
+    }
 
-        //if (handlers.Count == 0)
-        //    return Task.CompletedTask;
+    private async Task AwaitWhenAllAsync<TMessage>(TMessage notification, List<INotificationHandler<TMessage>> handlers, CancellationToken cancellationToken)
+    {
+        var tasks = handlers.Select(handler => handler.HandleAsync(notification, cancellationToken));
 
-        //var tasks = handlers.Select(handler => handler.HandleAsync(notification, cancellationToken));
-        //return Task.WhenAll(tasks);
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error handling notification");
+
+            // Rethrow the exception to the caller.
+            throw;
+        }
     }
 }

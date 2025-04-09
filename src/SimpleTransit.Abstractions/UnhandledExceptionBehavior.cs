@@ -2,6 +2,6 @@
 
 public enum UnhandledExceptionBehavior
 {
-    Continue,
-    Throw
+    Throw,
+    Continue
 }
