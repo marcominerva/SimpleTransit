@@ -1,0 +1,6 @@
+@SimpleTransitSample_HostAddress = http://localhost:5045
+
+GET {{SimpleTransitSample_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
