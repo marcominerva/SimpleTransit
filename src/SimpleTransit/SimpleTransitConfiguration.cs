@@ -13,8 +13,6 @@ public class SimpleTransitConfiguration
         this.services = services;
     }
 
-    public UnhandledExceptionBehavior UnhandledExceptionBehavior { get; set; } = UnhandledExceptionBehavior.Throw;
-
     public PublishStrategy PublishStrategy { get; set; } = PublishStrategy.AwaitForEach;
 
     public SimpleTransitConfiguration RegisterServiceFromAssemblyContaining<T>()

@@ -8,7 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSimpleTransit(options =>
 {
-    options.UnhandledExceptionBehavior = UnhandledExceptionBehavior.Continue;
     options.PublishStrategy = PublishStrategy.AwaitWhenAll;
 
     options.RegisterServiceFromAssemblyContaining<Program>();
@@ -31,9 +30,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapPost("api/test", async (INotificator notificator) =>
+app.MapPost("api/test", async (INotificationPublisher notificationPublisher) =>
 {
-    await notificator.NotifyAsync(new Point(1, 2));
+    await notificationPublisher.NotifyAsync(new Point(1, 2));
     return TypedResults.Ok();
 });
 
@@ -45,7 +44,7 @@ public class Sample : INotificationHandler<Point>, INotificationHandler<Regex>, 
         => throw new NotImplementedException();
 
     public Task HandleAsync(Point notification, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+        => Task.CompletedTask;
 
     public Task HandleAsync(Regex notification, CancellationToken cancellationToken) => Task.CompletedTask;
 }

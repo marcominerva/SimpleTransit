@@ -1,21 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using SimpleTransit.Abstractions;
 
 namespace SimpleTransit;
 
 public static class SimpleTransitExtensions
 {
-    public static IServiceCollection AddSimpleTransit(this IServiceCollection services, Action<SimpleTransitConfiguration> configurationAction)
+    public static IServiceCollection AddSimpleTransit(this IServiceCollection services, Action<SimpleTransitConfiguration> configure)
     {
-        services.TryAddSingleton<INotificator, SimpleTransit>();
+        services.AddScoped<SimpleTransit>();
+        services.AddScoped<INotificationPublisher>(services => services.GetRequiredService<SimpleTransit>());
 
         var configuration = new SimpleTransitConfiguration(services);
-        configurationAction.Invoke(configuration);
+        configure.Invoke(configuration);
 
         services.AddSingleton(new SimpleTransitOptions
         {
-            UnhandledExceptionBehavior = configuration.UnhandledExceptionBehavior,
             PublishStrategy = configuration.PublishStrategy
         });
 

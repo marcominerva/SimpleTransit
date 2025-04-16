@@ -4,7 +4,5 @@ namespace SimpleTransit;
 
 internal class SimpleTransitOptions
 {
-    public UnhandledExceptionBehavior UnhandledExceptionBehavior { get; set; }
-
     public PublishStrategy PublishStrategy { get; set; }
 }
