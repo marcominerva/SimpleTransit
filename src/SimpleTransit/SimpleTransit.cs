@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SimpleTransit.Abstractions;
+using SimpleTransit.Queue;
 
 namespace SimpleTransit;
 
-internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOptions options, ILogger<SimpleTransit> logger) : INotificationPublisher
+internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOptions options, ILogger<SimpleTransit> logger, InMemoryMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
 {
     public async Task NotifyAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default)
     {
@@ -18,10 +20,20 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
         {
             PublishStrategy.AwaitForEach => AwaitForEachAsync(notification, handlers, cancellationToken),
             PublishStrategy.AwaitWhenAll => AwaitWhenAllAsync(notification, handlers, cancellationToken),
-            _ => throw new NotSupportedException($"Publish strategy '{options.PublishStrategy}' is not supported.")
+            _ => throw new UnreachableException($"Publish strategy '{options.PublishStrategy}' is not supported.")
         };
 
         await executionTask;
+    }
+
+    public async Task PublishAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default) where TMessage : class, IMessage
+    {
+        if (queue is null)
+        {
+            throw new InvalidOperationException("No subscriber has been defined, so the message queue isn't available");
+        }
+
+        await queue.Writer.WriteAsync(notification, cancellationToken);
     }
 
     private async Task AwaitForEachAsync<TMessage>(TMessage notification, List<INotificationHandler<TMessage>> handlers, CancellationToken cancellationToken)
@@ -33,7 +45,7 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
                 await handler.HandleAsync(notification, cancellationToken);
             }
             catch (Exception ex)
-            {                
+            {
                 logger.LogError(ex, "Error handling notification");
 
                 // Rethrow the exception to the caller.
