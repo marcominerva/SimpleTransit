@@ -10,7 +10,7 @@ builder.Services.AddSimpleTransit(options =>
 {
     options.PublishStrategy = PublishStrategy.AwaitWhenAll;
 
-    options.RegisterServiceFromAssemblyContaining<Program>();
+    options.RegisterServicesFromAssemblyContaining<Program>();
 });
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -30,29 +30,38 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapPost("api/test", async (INotificationPublisher notificationPublisher) =>
+app.MapPost("api/test", async (INotificationPublisher notificationPublisher, IMessagePublisher messagePublisher) =>
 {
-    await notificationPublisher.NotifyAsync(new Point(1, 2));
+    //await notificationPublisher.NotifyAsync(new Point(1, 2));
+
+    await messagePublisher.PublishAsync(new TestMessage
+    {
+        Message = "Hello, world!"
+    });
+
     return TypedResults.Ok();
 });
 
 app.Run();
 
-public class Sample : INotificationHandler<Point>, INotificationHandler<Regex>, IDisposable
+public class Sample : INotificationHandler<Point>, INotificationHandler<Regex>, IConsumer<TestMessage>
 {
-    public void Dispose()
-        => throw new NotImplementedException();
-
     public Task HandleAsync(Point notification, CancellationToken cancellationToken)
         => Task.CompletedTask;
 
     public Task HandleAsync(Regex notification, CancellationToken cancellationToken) => Task.CompletedTask;
+
+    public Task HandleAsync(TestMessage notification, CancellationToken cancellationToken) => Task.CompletedTask;
 }
 
-public class Sample2 : INotificationHandler<Point>, IDisposable
+public class Sample2 : INotificationHandler<Point>, IConsumer<TestMessage>
 {
-    public void Dispose()
-        => throw new NotImplementedException();
-
     public Task HandleAsync(Point notification, CancellationToken cancellationToken) => Task.CompletedTask;
+
+    public Task HandleAsync(TestMessage notification, CancellationToken cancellationToken) => Task.CompletedTask;
+}
+
+public class TestMessage : IMessage
+{
+    public string Message { get; set; } = string.Empty;
 }

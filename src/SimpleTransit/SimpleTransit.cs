@@ -16,11 +16,11 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
             return;
         }
 
-        var executionTask = options.PublishStrategy switch
+        var executionTask = options.NotificationPublishStrategy switch
         {
             PublishStrategy.AwaitForEach => AwaitForEachAsync(notification, handlers, cancellationToken),
             PublishStrategy.AwaitWhenAll => AwaitWhenAllAsync(notification, handlers, cancellationToken),
-            _ => throw new UnreachableException($"Publish strategy '{options.PublishStrategy}' is not supported.")
+            _ => throw new UnreachableException($"Publish strategy '{options.NotificationPublishStrategy}' is not supported.")
         };
 
         await executionTask;
@@ -30,7 +30,7 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
     {
         if (queue is null)
         {
-            throw new InvalidOperationException("No subscriber has been defined, so the message queue isn't available");
+            throw new InvalidOperationException("Message queue not available: no consumers defined");
         }
 
         await queue.Writer.WriteAsync(notification, cancellationToken);

@@ -4,5 +4,7 @@ namespace SimpleTransit;
 
 internal class SimpleTransitOptions
 {
-    public PublishStrategy PublishStrategy { get; set; }
+    public PublishStrategy NotificationPublishStrategy { get; set; }
+
+    public PublishStrategy ConsumerPublishStrategy { get; set; }
 }
