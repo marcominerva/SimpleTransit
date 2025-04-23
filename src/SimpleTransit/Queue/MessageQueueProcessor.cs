@@ -18,7 +18,7 @@ internal class MessageQueueProcessor(IServiceProvider serviceProvider, InMemoryM
 
             if (handlers.Count == 0)
             {
-                logger.LogWarning("No handlers found for message type {MessageType}", message.GetType().Name);
+                logger.LogWarning("No consumers found for message type {MessageType}", message.GetType().Name);
                 continue;
             }
 

@@ -33,6 +33,7 @@ public static class SimpleTransitExtensions
             // Register IMessagePublisher interface and related services only if there are actual consumers.
             services.AddSingleton<InMemoryMessageQueue>();
             services.AddHostedService<MessageQueueProcessor>();
+
             services.AddScoped<IMessagePublisher>(services => services.GetRequiredService<SimpleTransit>());
         }
 
@@ -40,6 +41,7 @@ public static class SimpleTransitExtensions
         {
             // Register core SimpleTransit service and its options.
             services.AddScoped<SimpleTransit>();
+
             services.AddSingleton(new SimpleTransitOptions
             {
                 NotificationPublishStrategy = configuration.NotificationPublishStrategy,

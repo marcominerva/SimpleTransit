@@ -1,5 +1,3 @@
-using System.Drawing;
-using System.Text.RegularExpressions;
 using SimpleTransit;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,38 +28,43 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapPost("api/test", async (INotificationPublisher notificationPublisher, IMessagePublisher messagePublisher) =>
+app.MapPost("/api/people", async (Person person, INotificationPublisher notificationPublisher) =>
 {
-    await notificationPublisher.NotifyAsync(new Point(1, 2));
+    await notificationPublisher.NotifyAsync(person);
 
-    await messagePublisher.PublishAsync(new TestMessage
-    {
-        Message = "Hello, world!"
-    });
+    return TypedResults.Created("api/people", person);
+});
 
-    return TypedResults.Ok();
+app.MapPost("/api/products", async (Product product, IMessagePublisher messagePublisher) =>
+{
+    await messagePublisher.PublishAsync(product);
+
+    return TypedResults.Accepted("api/products", product);
 });
 
 app.Run();
 
-public class Sample : INotificationHandler<Point>, INotificationHandler<Regex>, IConsumer<TestMessage>
+public class PersonCreatedNotificationHandler(ILogger<PersonCreatedNotificationHandler> logger) : INotificationHandler<Person>
 {
-    public Task HandleAsync(Point message, CancellationToken cancellationToken)
-        => Task.CompletedTask;
-
-    public Task HandleAsync(Regex message, CancellationToken cancellationToken) => Task.CompletedTask;
-
-    public Task HandleAsync(TestMessage message, CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task HandleAsync(Person message, CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Person created: {FirstName} {LastName} from {City}", message.FirstName, message.LastName, message.City);
+        return Task.CompletedTask;
+    }
 }
 
-public class Sample2 : INotificationHandler<Point>, IConsumer<TestMessage>
+public class CreateProductConsumer(ILogger<CreateProductConsumer> logger) : IConsumer<Product>
 {
-    public Task HandleAsync(Point message, CancellationToken cancellationToken) => Task.CompletedTask;
+    public async Task HandleAsync(Product message, CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Creating product: {ProductName}...", message.Name);
 
-    public Task HandleAsync(TestMessage message, CancellationToken cancellationToken) => Task.CompletedTask;
+        await Task.Delay(2000, cancellationToken);
+
+        logger.LogInformation("Product created: {ProductName} - {ProductDescription} for {Price}", message.Name, message.Description, message.Price.ToString("C"));
+    }
 }
 
-public class TestMessage : IMessage
-{
-    public string Message { get; set; } = string.Empty;
-}
+public record class Person(string FirstName, string LastName, string? City);
+
+public record class Product(string Name, string Description, double Price) : IMessage;

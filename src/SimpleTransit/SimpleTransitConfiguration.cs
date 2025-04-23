@@ -49,9 +49,10 @@ public class SimpleTransitConfiguration
     /// and registers them with the dependency injection container.
     /// </summary>
     /// <typeparam name="T">A type from the target assembly.</typeparam>
+    /// <param name="predicate">An optional predicate to filter the types to be registered.</param>
     /// <returns>The current <see cref="SimpleTransitConfiguration"/> instance for method chaining.</returns>
-    public SimpleTransitConfiguration RegisterServicesFromAssemblyContaining<T>()
-        => RegisterServicesFromAssembly(typeof(T).Assembly);
+    public SimpleTransitConfiguration RegisterServicesFromAssemblyContaining<T>(Func<Type, bool>? predicate = null)
+        => RegisterServicesFromAssembly(typeof(T).Assembly, predicate);
 
     /// <summary>
     /// Registers services from the specified assembly. This method scans the assembly for types implementing
