@@ -1,6 +1,4 @@
-﻿using SimpleTransit.Abstractions;
-
-namespace SimpleTransit;
+﻿namespace SimpleTransit;
 
 internal class SimpleTransitOptions
 {

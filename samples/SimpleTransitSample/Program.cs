@@ -1,7 +1,6 @@
 using System.Drawing;
 using System.Text.RegularExpressions;
 using SimpleTransit;
-using SimpleTransit.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 

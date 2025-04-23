@@ -1,11 +1,22 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SimpleTransit.Abstractions;
 using SimpleTransit.Queue;
 
 namespace SimpleTransit;
 
+/// <summary>
+/// Provides extension methods for configuring and registering SimpleTransit services in an <see cref="IServiceCollection"/>.
+/// </summary>
 public static class SimpleTransitExtensions
 {
+    /// <summary>
+    /// Adds and configures SimpleTransit services to the specified <see cref="IServiceCollection"/>.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to which the services will be added.</param>
+    /// <param name="configure">
+    /// A delegate to configure the <see cref="SimpleTransitConfiguration"/>. This allows the caller to specify
+    /// how notification handlers and message consumers should be registered and how messages should be published.
+    /// </param>
+    /// <returns>The updated <see cref="IServiceCollection"/> with SimpleTransit services registered.</returns>
     public static IServiceCollection AddSimpleTransit(this IServiceCollection services, Action<SimpleTransitConfiguration> configure)
     {
         var configuration = new SimpleTransitConfiguration(services);
@@ -27,6 +38,7 @@ public static class SimpleTransitExtensions
 
         if (configuration.ContainsNotificationHandlers || configuration.ContainsMessageConsumers)
         {
+            // Register core SimpleTransit service and its options.
             services.AddScoped<SimpleTransit>();
             services.AddSingleton(new SimpleTransitOptions
             {

@@ -4,6 +4,35 @@
         <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>SimpleTransit</RootNamespace>
+        <DocumentationFile>SimpleTransit.Abstractions.xml</DocumentationFile>
+        <Authors>Marco Minerva</Authors>
+        <Company>Marco Minerva</Company>
+        <Product>Common types and interfaces for Simple Transit</Product>
+        <Title>Common types and interfaces for Simple Simple Transit</Title>
+        <Description>A library that provides common types and interfaces that are used by Simple Transit</Description>
+        <PackageId>SimpleTransit.Abstractions</PackageId>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/marcominerva/SimpleTransit</PackageProjectUrl>
+        <PackageIcon>Toolbox.png</PackageIcon>
+        <PackageTags>csharp visualstudio aspnetcore webapi minimal-api utilities helpers pub-sub notification</PackageTags>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/marcominerva/SimpleTransit.git</RepositoryUrl>
+        <RepositoryBranch>master</RepositoryBranch>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
+    <ItemGroup>
+        <None Remove="SimpleTransit.Abstractions.xml" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\Toolbox.png">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+    
 </Project>

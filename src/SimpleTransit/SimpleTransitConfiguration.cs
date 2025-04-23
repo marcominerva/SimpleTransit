@@ -1,9 +1,13 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using SimpleTransit.Abstractions;
 
 namespace SimpleTransit;
 
+/// <summary>
+/// Provides configuration options for the SimpleTransit library, enabling the registration
+/// of services such as notification handlers and message consumers. This class is designed
+/// to facilitate the setup of message-based communication patterns in an application.
+/// </summary>
 public class SimpleTransitConfiguration
 {
     private readonly IServiceCollection services;
@@ -15,23 +19,47 @@ public class SimpleTransitConfiguration
 
     /// <summary>
     /// Indicates whether the configuration contains Notification Handlers. This is necessary because the notification publisher interface
-    /// need to be registered only if there are actual handlers.
+    /// needs to be registered only if there are actual handlers. Notification handlers are responsible for processing notifications
+    /// published by the system.
     /// </summary>
     internal bool ContainsNotificationHandlers { get; set; }
 
     /// <summary>
     /// Indicates whether the configuration contains Message Consumers. This is necessary because the message queue hosted service
-    /// need to be registered only if there are actual consumers.
+    /// needs to be registered only if there are actual consumers. Message consumers are responsible for processing messages
+    /// from a message queue.
     /// </summary>
     internal bool ContainsMessageConsumers { get; set; }
 
+    /// <summary>
+    /// Gets or sets the strategy to be used when publishing notifications to multiple handlers.
+    /// The default strategy is <see cref="PublishStrategy.AwaitForEach"/>, which ensures sequential processing.
+    /// </summary>
     public PublishStrategy NotificationPublishStrategy { get; set; } = PublishStrategy.AwaitForEach;
 
+    /// <summary>
+    /// Gets or sets the strategy to be used when publishing messages to multiple consumers.
+    /// The default strategy is <see cref="PublishStrategy.AwaitForEach"/>, which ensures sequential processing.
+    /// </summary>
     public PublishStrategy ConsumerPublishStrategy { get; set; } = PublishStrategy.AwaitForEach;
 
+    /// <summary>
+    /// Registers services from the assembly containing the specified type <typeparamref name="T"/>.
+    /// This method scans the assembly for types implementing <see cref="INotificationHandler{T}"/> or <see cref="IConsumer{T}"/>
+    /// and registers them with the dependency injection container.
+    /// </summary>
+    /// <typeparam name="T">A type from the target assembly.</typeparam>
+    /// <returns>The current <see cref="SimpleTransitConfiguration"/> instance for method chaining.</returns>
     public SimpleTransitConfiguration RegisterServicesFromAssemblyContaining<T>()
         => RegisterServicesFromAssembly(typeof(T).Assembly);
 
+    /// <summary>
+    /// Registers services from the specified assembly. This method scans the assembly for types implementing
+    /// <see cref="INotificationHandler{T}"/> or <see cref="IConsumer{T}"/> and registers them with the dependency injection container.
+    /// </summary>
+    /// <param name="assembly">The assembly to scan for services.</param>
+    /// <param name="predicate">An optional predicate to filter the types to be registered.</param>
+    /// <returns>The current <see cref="SimpleTransitConfiguration"/> instance for method chaining.</returns>
     public SimpleTransitConfiguration RegisterServicesFromAssembly(Assembly assembly, Func<Type, bool>? predicate = null)
     {
         var notificationHandlerInterfaceType = typeof(INotificationHandler<>);
@@ -79,12 +107,22 @@ public class SimpleTransitConfiguration
         }
     }
 
+    /// <summary>
+    /// Marks the configuration as containing notification handlers. This is useful when handlers
+    /// are registered manually or through other means outside of this configuration class.
+    /// </summary>
+    /// <returns>The current <see cref="SimpleTransitConfiguration"/> instance for method chaining.</returns>
     public SimpleTransitConfiguration UseNotificationHandlers()
     {
         ContainsNotificationHandlers = true;
         return this;
     }
 
+    /// <summary>
+    /// Marks the configuration as containing message consumers. This is useful when consumers
+    /// are registered manually or through other means outside of this configuration class.
+    /// </summary>
+    /// <returns>The current <see cref="SimpleTransitConfiguration"/> instance for method chaining.</returns>
     public SimpleTransitConfiguration UseMessageConsumers()
     {
         ContainsMessageConsumers = true;
