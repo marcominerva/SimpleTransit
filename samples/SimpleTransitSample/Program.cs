@@ -8,7 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSimpleTransit(options =>
 {
-    options.PublishStrategy = PublishStrategy.AwaitWhenAll;
+    options.NotificationPublishStrategy = PublishStrategy.AwaitWhenAll;
+    options.ConsumerPublishStrategy = PublishStrategy.AwaitWhenAll;
 
     options.RegisterServicesFromAssemblyContaining<Program>();
 });
@@ -32,7 +33,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapPost("api/test", async (INotificationPublisher notificationPublisher, IMessagePublisher messagePublisher) =>
 {
-    //await notificationPublisher.NotifyAsync(new Point(1, 2));
+    await notificationPublisher.NotifyAsync(new Point(1, 2));
 
     await messagePublisher.PublishAsync(new TestMessage
     {
@@ -46,19 +47,19 @@ app.Run();
 
 public class Sample : INotificationHandler<Point>, INotificationHandler<Regex>, IConsumer<TestMessage>
 {
-    public Task HandleAsync(Point notification, CancellationToken cancellationToken)
+    public Task HandleAsync(Point message, CancellationToken cancellationToken)
         => Task.CompletedTask;
 
-    public Task HandleAsync(Regex notification, CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task HandleAsync(Regex message, CancellationToken cancellationToken) => Task.CompletedTask;
 
-    public Task HandleAsync(TestMessage notification, CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task HandleAsync(TestMessage message, CancellationToken cancellationToken) => Task.CompletedTask;
 }
 
 public class Sample2 : INotificationHandler<Point>, IConsumer<TestMessage>
 {
-    public Task HandleAsync(Point notification, CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task HandleAsync(Point message, CancellationToken cancellationToken) => Task.CompletedTask;
 
-    public Task HandleAsync(TestMessage notification, CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task HandleAsync(TestMessage message, CancellationToken cancellationToken) => Task.CompletedTask;
 }
 
 public class TestMessage : IMessage

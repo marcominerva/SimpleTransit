@@ -11,7 +11,9 @@ internal class InMemoryMessageQueue
         SingleWriter = false
     });
 
-    public ChannelReader<IMessage> Reader => channel.Reader;
+    public IAsyncEnumerable<IMessage> ReadAllAsync(CancellationToken cancellationToken)
+        => channel.Reader.ReadAllAsync(cancellationToken);
 
-    public ChannelWriter<IMessage> Writer => channel.Writer;
+    public ValueTask WriteAsync(IMessage message, CancellationToken cancellationToken)
+        => channel.Writer.WriteAsync(message, cancellationToken);
 }

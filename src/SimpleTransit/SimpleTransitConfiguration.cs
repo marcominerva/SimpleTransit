@@ -35,11 +35,7 @@ public class SimpleTransitConfiguration
     public SimpleTransitConfiguration RegisterServicesFromAssembly(Assembly assembly, Func<Type, bool>? predicate = null)
     {
         var notificationHandlerInterfaceType = typeof(INotificationHandler<>);
-
-        var notificationHandlersToRegister = assembly.GetTypes()
-            .Where(type => type.IsClass && !type.IsAbstract)
-            .Where(type => type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == notificationHandlerInterfaceType))
-            .Where(type => predicate == null || predicate(type)).ToList();
+        var notificationHandlersToRegister = GetTypes(assembly, notificationHandlerInterfaceType, predicate);
 
         if (notificationHandlersToRegister.Count > 0)
         {
@@ -48,11 +44,7 @@ public class SimpleTransitConfiguration
         }
 
         var consumerInterfaceType = typeof(IConsumer<>);
-
-        var consumersToRegister = assembly.GetTypes()
-            .Where(type => type.IsClass && !type.IsAbstract)
-            .Where(type => type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == consumerInterfaceType))
-            .Where(type => predicate == null || predicate(type)).ToList();
+        var consumersToRegister = GetTypes(assembly, consumerInterfaceType, predicate);
 
         if (consumersToRegister.Count > 0)
         {
@@ -61,6 +53,16 @@ public class SimpleTransitConfiguration
         }
 
         return this;
+
+        static IList<Type> GetTypes(Assembly assembly, Type interfaceType, Func<Type, bool>? predicate = null)
+        {
+            var typesToRegister = assembly.GetTypes()
+                .Where(type => type.IsClass && !type.IsAbstract)
+                .Where(type => type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType))
+                .Where(type => predicate == null || predicate(type)).ToList();
+
+            return typesToRegister;
+        }
 
         static void RegisterTypes(IServiceCollection services, IEnumerable<Type> typesToRegister, Type interfaceType)
         {

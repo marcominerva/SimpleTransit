@@ -2,5 +2,5 @@
 
 public interface IConsumer<TMessage> where TMessage : class, IMessage
 {
-    Task HandleAsync(TMessage notification, CancellationToken cancellationToken);
+    Task HandleAsync(TMessage message, CancellationToken cancellationToken);
 }

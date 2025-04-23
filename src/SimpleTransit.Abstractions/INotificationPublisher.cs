@@ -2,5 +2,5 @@
 
 public interface INotificationPublisher
 {
-    Task NotifyAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default);
+    Task NotifyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default);
 }

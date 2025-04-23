@@ -2,5 +2,5 @@
 
 public interface INotificationHandler<TMessage>
 {
-    Task HandleAsync(TMessage notification, CancellationToken cancellationToken);
+    Task HandleAsync(TMessage message, CancellationToken cancellationToken);
 }

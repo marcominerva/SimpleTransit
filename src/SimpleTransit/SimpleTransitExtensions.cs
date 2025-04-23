@@ -30,7 +30,8 @@ public static class SimpleTransitExtensions
             services.AddScoped<SimpleTransit>();
             services.AddSingleton(new SimpleTransitOptions
             {
-                NotificationPublishStrategy = configuration.PublishStrategy
+                NotificationPublishStrategy = configuration.NotificationPublishStrategy,
+                ConsumerPublishStrategy = configuration.ConsumerPublishStrategy
             });
         }
 

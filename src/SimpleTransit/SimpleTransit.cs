@@ -13,6 +13,7 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
         var handlers = serviceProvider.GetServices<INotificationHandler<TMessage>>().ToList();
         if (handlers.Count == 0)
         {
+            logger.LogWarning("No handlers found for message type {MessageType}", typeof(TMessage).Name);
             return;
         }
 
@@ -33,7 +34,7 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
             throw new InvalidOperationException("Message queue not available: no consumers defined");
         }
 
-        await queue.Writer.WriteAsync(notification, cancellationToken);
+        await queue.WriteAsync(notification, cancellationToken);
     }
 
     private async Task AwaitForEachAsync<TMessage>(TMessage notification, List<INotificationHandler<TMessage>> handlers, CancellationToken cancellationToken)
@@ -46,7 +47,7 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error handling notification");
+                logger.LogError(ex, "Unexpected error while handling notification of type {MessageType}", typeof(TMessage).Name);
 
                 // Rethrow the exception to the caller.
                 throw;
@@ -64,7 +65,7 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error handling notification");
+            logger.LogError(ex, "Unexpected error while handling notification of type {MessageType}", typeof(TMessage).Name);
 
             // Rethrow the exception to the caller.
             throw;
