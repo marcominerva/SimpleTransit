@@ -27,7 +27,7 @@ internal class MessageQueueProcessor(IServiceProvider serviceProvider, InMemoryM
             {
                 PublishStrategy.AwaitForEach => AwaitForEachAsync(consumerType, handlers!, message, stoppingToken),
                 PublishStrategy.AwaitWhenAll => AwaitWhenAllAsync(consumerType, handlers!, message, stoppingToken),
-                _ => throw new UnreachableException($"Publish strategy '{options.NotificationPublishStrategy}' is not supported.")
+                _ => throw new UnreachableException($"Publish strategy '{options.ConsumerPublishStrategy}' is not supported.")
             };
 
             await executionTask;
