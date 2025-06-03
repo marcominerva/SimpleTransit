@@ -1,11 +1,9 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SimpleTransit.Queue;
 
 namespace SimpleTransit;
 
-internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOptions options, ILogger<SimpleTransit> logger, InMemoryMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
+internal class SimpleTransit(IServiceProvider serviceProvider, ILogger<SimpleTransit> logger, IMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
 {
     public async Task NotifyAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default)
     {
@@ -16,28 +14,6 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
             return;
         }
 
-        var executionTask = options.NotificationPublishStrategy switch
-        {
-            PublishStrategy.AwaitForEach => AwaitForEachAsync(notification, handlers, cancellationToken),
-            PublishStrategy.AwaitWhenAll => AwaitWhenAllAsync(notification, handlers, cancellationToken),
-            _ => throw new UnreachableException($"Publish strategy '{options.NotificationPublishStrategy}' is not supported.")
-        };
-
-        await executionTask;
-    }
-
-    public async Task PublishAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default) where TMessage : class, IMessage
-    {
-        if (queue is null)
-        {
-            throw new InvalidOperationException("Message queue not available: no consumers defined");
-        }
-
-        await queue.WriteAsync(notification, cancellationToken);
-    }
-
-    private async Task AwaitForEachAsync<TMessage>(TMessage notification, List<INotificationHandler<TMessage>> handlers, CancellationToken cancellationToken)
-    {
         foreach (var handler in handlers)
         {
             try
@@ -54,20 +30,13 @@ internal class SimpleTransit(IServiceProvider serviceProvider, SimpleTransitOpti
         }
     }
 
-    private async Task AwaitWhenAllAsync<TMessage>(TMessage notification, List<INotificationHandler<TMessage>> handlers, CancellationToken cancellationToken)
+    public async Task PublishAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default) where TMessage : class, IMessage
     {
-        var tasks = handlers.Select(handler => handler.HandleAsync(notification, cancellationToken));
-
-        try
+        if (queue is null)
         {
-            await Task.WhenAll(tasks);
+            throw new InvalidOperationException("Message queue not available: no consumers defined");
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected error while handling notification of type {MessageType}", typeof(TMessage).Name);
 
-            // Rethrow the exception to the caller.
-            throw;
-        }
+        await queue.WriteAsync(notification, cancellationToken);
     }
 }

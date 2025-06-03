@@ -32,18 +32,6 @@ public class SimpleTransitConfiguration
     internal bool ContainsMessageConsumers { get; set; }
 
     /// <summary>
-    /// Gets or sets the strategy to be used when publishing notifications to multiple handlers.
-    /// The default strategy is <see cref="PublishStrategy.AwaitForEach"/>, which ensures sequential processing.
-    /// </summary>
-    public PublishStrategy NotificationPublishStrategy { get; set; } = PublishStrategy.AwaitForEach;
-
-    /// <summary>
-    /// Gets or sets the strategy to be used when publishing messages to multiple consumers.
-    /// The default strategy is <see cref="PublishStrategy.AwaitForEach"/>, which ensures sequential processing.
-    /// </summary>
-    public PublishStrategy ConsumerPublishStrategy { get; set; } = PublishStrategy.AwaitForEach;
-
-    /// <summary>
     /// Registers services from the assembly containing the specified type <typeparamref name="T"/>.
     /// This method scans the assembly for types implementing <see cref="INotificationHandler{T}"/> or <see cref="IConsumer{T}"/>
     /// and registers them with the dependency injection container.

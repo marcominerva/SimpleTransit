@@ -5,9 +5,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSimpleTransit(options =>
 {
-    options.NotificationPublishStrategy = PublishStrategy.AwaitWhenAll;
-    options.ConsumerPublishStrategy = PublishStrategy.AwaitWhenAll;
-
     options.RegisterServicesFromAssemblyContaining<Program>();
 });
 
@@ -46,10 +43,11 @@ app.Run();
 
 public class PersonCreatedNotificationHandler(ILogger<PersonCreatedNotificationHandler> logger) : INotificationHandler<Person>
 {
-    public Task HandleAsync(Person message, CancellationToken cancellationToken)
+    public async Task HandleAsync(Person message, CancellationToken cancellationToken)
     {
         logger.LogInformation("Person created: {FirstName} {LastName} from {City}", message.FirstName, message.LastName, message.City);
-        return Task.CompletedTask;
+
+        await Task.Delay(10000, cancellationToken);
     }
 }
 
@@ -59,7 +57,7 @@ public class CreateProductConsumer(ILogger<CreateProductConsumer> logger) : ICon
     {
         logger.LogInformation("Creating product: {ProductName}...", message.Name);
 
-        await Task.Delay(2000, cancellationToken);
+        await Task.Delay(10000, cancellationToken);
 
         logger.LogInformation("Product created: {ProductName} - {ProductDescription} for {Price}", message.Name, message.Description, message.Price.ToString("C"));
     }
