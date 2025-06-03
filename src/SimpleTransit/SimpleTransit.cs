@@ -3,11 +3,11 @@ using Microsoft.Extensions.Logging;
 
 namespace SimpleTransit;
 
-internal class SimpleTransit(IServiceProvider serviceProvider, ILogger<SimpleTransit> logger, IMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
+internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<SimpleTransit> logger, IMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
 {
     public async Task NotifyAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default)
     {
-        var handlers = serviceProvider.GetServices<INotificationHandler<TMessage>>().ToList();
+        var handlers = scopeResolver.GetCurrentServiceProvider().GetServices<INotificationHandler<TMessage>>().ToList();
         if (handlers.Count == 0)
         {
             logger.LogWarning("No handlers found for message type {MessageType}", typeof(TMessage).Name);

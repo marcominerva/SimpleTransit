@@ -4,13 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace SimpleTransit.Queues;
 
-internal class MessageQueueProcessor(IServiceProvider serviceProvider, IMessageQueue queue, ILogger<MessageQueueProcessor> logger) : BackgroundService
+internal class MessageQueueProcessor(SimpleTransitScopeResolver scopeResolver, IMessageQueue queue, ILogger<MessageQueueProcessor> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await foreach (var message in queue.ReadAllAsync(stoppingToken))
         {
-            await using var scope = serviceProvider.CreateAsyncScope();
+            await using var scope = scopeResolver.CreateAsyncScope();
 
             var consumerType = typeof(IConsumer<>).MakeGenericType(message.GetType());
             var handlers = scope.ServiceProvider.GetServices(consumerType).ToList();

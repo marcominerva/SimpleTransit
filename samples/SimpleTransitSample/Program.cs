@@ -8,6 +8,8 @@ builder.Services.AddSimpleTransit(options =>
     options.RegisterServicesFromAssemblyContaining<Program>();
 });
 
+builder.Services.AddScoped<Service>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -41,20 +43,34 @@ app.MapPost("/api/products", async (Product product, IMessagePublisher messagePu
 
 app.Run();
 
-public class PersonCreatedNotificationHandler(ILogger<PersonCreatedNotificationHandler> logger) : INotificationHandler<Person>
+public class PersonCreatedNotificationHandler(Service service, ILogger<PersonCreatedNotificationHandler> logger) : INotificationHandler<Person>
 {
     public async Task HandleAsync(Person message, CancellationToken cancellationToken)
     {
+        Console.WriteLine(service.Id);
         logger.LogInformation("Person created: {FirstName} {LastName} from {City}", message.FirstName, message.LastName, message.City);
 
         await Task.Delay(10000, cancellationToken);
     }
 }
 
-public class CreateProductConsumer(ILogger<CreateProductConsumer> logger) : IConsumer<Product>
+public class PersonCreatedNotificationHandler2(Service service, ILogger<PersonCreatedNotificationHandler> logger) : INotificationHandler<Person>
+{
+    public async Task HandleAsync(Person message, CancellationToken cancellationToken)
+    {
+        Console.WriteLine(service.Id);
+        logger.LogInformation("Person created: {FirstName} {LastName} from {City}", message.FirstName, message.LastName, message.City);
+
+        await Task.Delay(10000, cancellationToken);
+    }
+}
+
+public class CreateProductConsumer(INotificationPublisher notificationPublisher, Service service, ILogger<CreateProductConsumer> logger) : IConsumer<Product>
 {
     public async Task HandleAsync(Product message, CancellationToken cancellationToken)
     {
+        Console.WriteLine(service.Id);
+
         logger.LogInformation("Creating product: {ProductName}...", message.Name);
 
         await Task.Delay(10000, cancellationToken);
@@ -66,3 +82,12 @@ public class CreateProductConsumer(ILogger<CreateProductConsumer> logger) : ICon
 public record class Person(string FirstName, string LastName, string? City);
 
 public record class Product(string Name, string Description, double Price) : IMessage;
+
+public class Service : IDisposable
+{
+    public Guid Id { get; } = Guid.NewGuid();
+
+    public void Dispose()
+    {
+    }
+}

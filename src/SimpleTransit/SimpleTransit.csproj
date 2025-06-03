@@ -23,6 +23,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\SimpleTransit.Abstractions\SimpleTransit.Abstractions.csproj" />
     </ItemGroup>
 
