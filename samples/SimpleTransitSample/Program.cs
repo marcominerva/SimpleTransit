@@ -65,7 +65,7 @@ public class PersonCreatedNotificationHandler2(Service service, ILogger<PersonCr
     }
 }
 
-public class CreateProductConsumer(INotificationPublisher notificationPublisher, Service service, ILogger<CreateProductConsumer> logger) : IConsumer<Product>
+public class CreateProductConsumer(Service service, ILogger<CreateProductConsumer> logger) : IConsumer<Product>
 {
     public async Task HandleAsync(Product message, CancellationToken cancellationToken)
     {

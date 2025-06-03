@@ -76,7 +76,7 @@ public class SimpleTransitConfiguration
             var typesToRegister = assembly.GetTypes()
                 .Where(type => type.IsClass && !type.IsAbstract)
                 .Where(type => type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType))
-                .Where(type => predicate == null || predicate(type)).ToList();
+                .Where(type => predicate is null || predicate(type)).ToList();
 
             return typesToRegister;
         }
@@ -86,7 +86,7 @@ public class SimpleTransitConfiguration
             foreach (var type in typesToRegister)
             {
                 var interfaces = type.GetInterfaces()
-                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType);
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType).ToList();
 
                 foreach (var @interface in interfaces)
                 {
