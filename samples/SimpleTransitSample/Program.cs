@@ -78,6 +78,20 @@ public class CreateProductConsumer(Service service, ILogger<CreateProductConsume
     }
 }
 
+public class CreateProductConsumer2(Service service, ILogger<CreateProductConsumer> logger) : IConsumer<Product>
+{
+    public async Task HandleAsync(Product message, CancellationToken cancellationToken)
+    {
+        Console.WriteLine(service.Id);
+
+        logger.LogInformation("Creating product: {ProductName}...", message.Name);
+
+        await Task.Delay(10000, cancellationToken);
+
+        logger.LogInformation("Product created: {ProductName} - {ProductDescription} for {Price}", message.Name, message.Description, message.Price.ToString("C"));
+    }
+}
+
 public record class Person(string FirstName, string LastName, string? City);
 
 public record class Product(string Name, string Description, double Price) : IMessage;

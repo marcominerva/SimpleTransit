@@ -4,7 +4,11 @@ namespace SimpleTransit.Queues;
 
 internal class InMemoryMessageQueue : IMessageQueue
 {
-    private readonly Channel<IMessage> channel = Channel.CreateUnbounded<IMessage>();
+    private readonly Channel<IMessage> channel = Channel.CreateUnbounded<IMessage>(new()
+    {
+        SingleReader = true,
+        SingleWriter = false
+    });
 
     public IAsyncEnumerable<IMessage> ReadAllAsync(CancellationToken cancellationToken)
         => channel.Reader.ReadAllAsync(cancellationToken);
