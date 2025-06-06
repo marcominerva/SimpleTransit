@@ -18,5 +18,5 @@ public interface INotificationPublisher
     /// A <see cref="CancellationToken"/> that can be used to cancel the operation.
     /// </param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-    Task NotifyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default);
+    Task NotifyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : notnull;
 }

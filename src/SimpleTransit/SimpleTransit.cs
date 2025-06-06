@@ -5,7 +5,7 @@ namespace SimpleTransit;
 
 internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<SimpleTransit> logger, IMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
 {
-    public async Task NotifyAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default)
+    public async Task NotifyAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default) where TMessage : notnull
     {
         var handlers = scopeResolver.GetCurrentServiceProvider().GetServices<INotificationHandler<TMessage>>().ToList();
         if (handlers.Count == 0)
