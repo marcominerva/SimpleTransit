@@ -7,25 +7,37 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
 {
     public async Task NotifyAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default) where TMessage : notnull
     {
-        var handlers = scopeResolver.GetCurrentServiceProvider().GetServices<INotificationHandler<TMessage>>().ToList();
-        if (handlers.Count == 0)
-        {
-            logger.LogWarning("No handlers found for message type {MessageType}", typeof(TMessage).Name);
-            return;
-        }
+        (var serviceProvider, var isOwned) = scopeResolver.GetOrCreate();
 
-        foreach (var handler in handlers)
+        try
         {
-            try
+            var handlers = serviceProvider.GetServices<INotificationHandler<TMessage>>().ToList();
+            if (handlers.Count == 0)
             {
-                await handler.HandleAsync(notification, cancellationToken);
+                logger.LogWarning("No handlers found for message type {MessageType}", typeof(TMessage).Name);
+                return;
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Unexpected error while handling notification of type {MessageType}", typeof(TMessage).Name);
 
-                // Rethrow the exception to the caller.
-                throw;
+            foreach (var handler in handlers)
+            {
+                try
+                {
+                    await handler.HandleAsync(notification, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Unexpected error while handling notification of type {MessageType}", typeof(TMessage).Name);
+
+                    // Rethrow the exception to the caller.
+                    throw;
+                }
+            }
+        }
+        finally
+        {
+            if (isOwned)
+            {
+                await (serviceProvider as IAsyncDisposable)!.DisposeAsync();
             }
         }
     }

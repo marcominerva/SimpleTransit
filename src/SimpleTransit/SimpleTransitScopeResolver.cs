@@ -13,17 +13,17 @@ internal sealed class SimpleTransitScopeResolver(IServiceProvider rootServicePro
     /// Otherwise, returns the root service provider.
     /// </summary>
     /// <returns>The appropriate service provider for the current context.</returns>
-    public IServiceProvider GetCurrentServiceProvider()
+    public (IServiceProvider ServiceProvider, bool IsOwned) GetOrCreate()
     {
         // Check if there's an active HTTP context.
         if (httpContextAccessor.HttpContext is not null)
         {
             // Use the service provider from the current HTTP context.
-            return httpContextAccessor.HttpContext.RequestServices;
+            return (httpContextAccessor.HttpContext.RequestServices, false);
         }
 
-        // Fall back to the root service provider.
-        return rootServiceProvider;
+        // Create a new scoped service provider.
+        return (rootServiceProvider.CreateAsyncScope().ServiceProvider, true);
     }
 
     /// <summary>
