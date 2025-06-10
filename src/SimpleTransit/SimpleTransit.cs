@@ -37,7 +37,7 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
         {
             if (isOwned)
             {
-                await (serviceProvider as IAsyncDisposable)!.DisposeAsync();
+                await ((IAsyncDisposable)serviceProvider).DisposeAsync();
             }
         }
     }

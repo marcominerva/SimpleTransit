@@ -10,7 +10,7 @@ builder.Services.AddSimpleTransit(options =>
 
 builder.Services.AddSingleton<ChatService>();
 builder.Services.AddScoped<Service>();
-builder.Services.AddHostedService<CleanupService>();
+//builder.Services.AddHostedService<CleanupService>();
 
 builder.Services.AddOpenApi();
 

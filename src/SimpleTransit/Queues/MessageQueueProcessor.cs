@@ -38,7 +38,7 @@ internal class MessageQueueProcessor(SimpleTransitScopeResolver scopeResolver, I
     private static async Task InvokeHandlerAsync(Type consumerType, object handler, IMessage message, CancellationToken cancellationToken)
     {
         // Use reflection to invoke the method on the IConsumer interface.
-        var consumeMethod = consumerType.GetMethod("HandleAsync");
+        var consumeMethod = consumerType.GetMethod(nameof(IConsumer<IMessage>.HandleAsync));
         if (consumeMethod is not null)
         {
             await (Task)consumeMethod.Invoke(handler, [message, cancellationToken])!;

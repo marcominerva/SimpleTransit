@@ -8,11 +8,25 @@ using Microsoft.Extensions.DependencyInjection;
 internal sealed class SimpleTransitScopeResolver(IServiceProvider rootServiceProvider, IHttpContextAccessor httpContextAccessor)
 {
     /// <summary>
-    /// Gets the appropriate service provider for the current context.
-    /// If an HTTP request is in progress, returns the scoped service provider from the HTTP context.
-    /// Otherwise, returns the root service provider.
+    /// Retrieves an <see cref="IServiceProvider"/> for resolving dependencies, preferring the current HTTP request's scope if available.
     /// </summary>
-    /// <returns>The appropriate service provider for the current context.</returns>
+    /// <remarks>
+    /// <para>
+    /// This method is designed to ensure that service resolution occurs within the correct scope, which is critical for the correct
+    /// lifetime management of scoped services in ASP.NET Core applications. If an HTTP request is active, it uses the request's
+    /// <see cref="IServiceProvider"/> to ensure that all resolved services are tied to the request's lifetime. This prevents issues
+    /// such as leaking scoped services across requests or resolving services outside of their intended scope.
+    /// </para>
+    /// <para>
+    /// If no HTTP context is available (e.g., in background threads or non-HTTP scenarios), the method creates a new asynchronous
+    /// service scope from the application's root <see cref="IServiceProvider"/>. The caller is responsible for disposing of this
+    /// scope if <c>IsOwned</c> is <c>true</c> to avoid resource leaks.
+    /// </para>
+    /// </remarks>
+    /// <returns>
+    /// A tuple containing the resolved <see cref="IServiceProvider"/> and a <see cref="bool"/> indicating whether the caller owns
+    /// the scope and is responsible for its disposal.
+    /// </returns>
     public (IServiceProvider ServiceProvider, bool IsOwned) GetOrCreate()
     {
         // Check if there's an active HTTP context.
@@ -29,7 +43,7 @@ internal sealed class SimpleTransitScopeResolver(IServiceProvider rootServicePro
     /// <summary>
     /// Creates a new asynchronous service scope.
     /// </summary>
-    /// <remarks>The created <see cref="AsyncServiceScope"/> provides a scoped service provider  for resolving
+    /// <remarks>The created <see cref="AsyncServiceScope"/> provides a scoped service provider for resolving
     /// scoped services. It is the caller's responsibility to dispose  of the returned scope to release
     /// resources.</remarks>
     /// <returns>An <see cref="AsyncServiceScope"/> that represents the new service scope.</returns>
