@@ -25,6 +25,8 @@ public static class SimpleTransitExtensions
         if (configuration.ContainsNotificationHandlers || configuration.ContainsMessageConsumers)
         {
             // Register core SimpleTransit services.
+            services.AddHttpContextAccessor();
+
             services.AddSingleton<SimpleTransitScopeResolver>();
             services.AddSingleton<SimpleTransit>();
         }
@@ -32,8 +34,6 @@ public static class SimpleTransitExtensions
         if (configuration.ContainsNotificationHandlers)
         {
             // Register INotificationPublisher interface only if there are actual handlers.
-            services.AddHttpContextAccessor();
-
             services.AddSingleton<INotificationPublisher>(services => services.GetRequiredService<SimpleTransit>());
         }
 
