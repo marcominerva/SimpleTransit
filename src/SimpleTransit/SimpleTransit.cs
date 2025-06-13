@@ -5,7 +5,7 @@ namespace SimpleTransit;
 
 internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<SimpleTransit> logger, IMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
 {
-    public async Task NotifyAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default) where TMessage : notnull
+    public async Task NotifyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : notnull
     {
         (var serviceProvider, var isOwned) = scopeResolver.GetOrCreate();
 
@@ -22,7 +22,7 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
             {
                 try
                 {
-                    await handler.HandleAsync(notification, cancellationToken);
+                    await handler.HandleAsync(message, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -42,13 +42,13 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
         }
     }
 
-    public async Task PublishAsync<TMessage>(TMessage notification, CancellationToken cancellationToken = default) where TMessage : class, IMessage
+    public async Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : class, IMessage
     {
         if (queue is null)
         {
             throw new InvalidOperationException("Message queue not available: no consumers defined");
         }
 
-        await queue.WriteAsync(notification, cancellationToken);
+        await queue.WriteAsync(message, cancellationToken);
     }
 }
