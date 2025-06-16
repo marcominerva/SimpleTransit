@@ -11,10 +11,12 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
 
         try
         {
+            var messageType = typeof(TMessage).Name;
+
             var handlers = serviceProvider.GetServices<INotificationHandler<TMessage>>().ToList();
             if (handlers.Count == 0)
             {
-                logger.LogWarning("No handlers found for message type {MessageType}", typeof(TMessage).Name);
+                logger.LogWarning("No handlers found for message type {MessageType}", messageType);
                 return;
             }
 
@@ -26,7 +28,7 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Unexpected error while handling notification of type {MessageType}", typeof(TMessage).Name);
+                    logger.LogError(ex, "Unexpected error while handling notification for type {MessageType} with handler {HandlerType}", messageType, handler.GetType().Name);
 
                     // Rethrow the exception to the caller.
                     throw;

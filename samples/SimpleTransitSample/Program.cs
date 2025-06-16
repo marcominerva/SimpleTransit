@@ -8,9 +8,7 @@ builder.Services.AddSimpleTransit(options =>
     options.RegisterServicesFromAssemblyContaining<Program>();
 });
 
-builder.Services.AddSingleton<ChatService>();
-builder.Services.AddScoped<Service>();
-//builder.Services.AddHostedService<CleanupService>();
+builder.Services.AddScoped<SampleService>();
 
 builder.Services.AddOpenApi();
 
@@ -28,12 +26,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapPost("/api/people", async (Person person, ChatService chatService, INotificationPublisher notificationPublisher) =>
+app.MapPost("/api/people", async (Person person, INotificationPublisher notificationPublisher) =>
 {
-    var cityInformation = await chatService.AskAsync($"Talk me about {person.City}");
-
     await notificationPublisher.NotifyAsync(person);
-    await notificationPublisher.NotifyAsync(new NewAction("personCreated"));
 
     return TypedResults.Created("api/people", person);
 });
@@ -42,12 +37,12 @@ app.MapPost("/api/products", async (Product product, IMessagePublisher messagePu
 {
     await messagePublisher.PublishAsync(product);
 
-    return TypedResults.Accepted("api/products", product);
+    return TypedResults.StatusCode(StatusCodes.Status202Accepted);
 });
 
 app.Run();
 
-public class PersonCreatedNotificationHandler(Service service, ILogger<PersonCreatedNotificationHandler> logger) : INotificationHandler<Person>
+public class PersonCreatedNotificationHandler(SampleService service, ILogger<PersonCreatedNotificationHandler> logger) : INotificationHandler<Person>
 {
     public async Task HandleAsync(Person message, CancellationToken cancellationToken)
     {
@@ -58,7 +53,7 @@ public class PersonCreatedNotificationHandler(Service service, ILogger<PersonCre
     }
 }
 
-public class CreateProductConsumer(Service service, ILogger<CreateProductConsumer> logger) : IConsumer<Product>
+public class CreateProductConsumer(SampleService service, ILogger<CreateProductConsumer> logger) : IConsumer<Product>
 {
     public async Task HandleAsync(Product message, CancellationToken cancellationToken)
     {
@@ -76,43 +71,11 @@ public record class Person(string FirstName, string LastName, string? City);
 
 public record class Product(string Name, string Description, double Price) : IMessage;
 
-public record class NewAction(string ActionName);
-
-public class Service : IDisposable
+public class SampleService : IDisposable
 {
     public Guid Id { get; } = Guid.NewGuid();
 
     public void Dispose()
     {
-    }
-}
-
-public class ChatService(INotificationPublisher notificationPublisher)
-{
-    public async Task<string> AskAsync(string question)
-    {
-        await Task.Delay(1000);
-
-        await notificationPublisher.NotifyAsync(new NewAction("ask"));
-
-        return string.Empty;
-    }
-}
-
-public class NewActionNotificationHandler(Service service) : INotificationHandler<NewAction>
-{
-    public Task HandleAsync(NewAction message, CancellationToken cancellationToken)
-        => Task.CompletedTask;
-}
-
-public class CleanupService(INotificationPublisher notificationPublisher) : BackgroundService
-{
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            await Task.Delay(10000, stoppingToken);
-            await notificationPublisher.NotifyAsync(new NewAction("cleanup"), stoppingToken);
-        }
     }
 }
