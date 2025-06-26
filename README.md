@@ -2,8 +2,6 @@
 
 A simple, lightweight implementation of an in-memory publisher/subscriber pattern for .NET applications. SimpleTransit provides a clean and efficient way to implement message-driven architectures using either direct notification handling or queued message processing.
 
-![Toolbox](Toolbox.png)
-
 ## Features
 
 - **Dual Messaging Patterns**: Support for both immediate notifications and queued message processing
@@ -59,18 +57,11 @@ public record ProductCreated(string Name, string Description, double Price) : IM
 
 #### Notification Handler (Immediate Processing)
 ```csharp
-public class PersonCreatedNotificationHandler : INotificationHandler<PersonCreated>
+public class PersonCreatedNotificationHandler(ILogger<PersonCreatedNotificationHandler> logger) : INotificationHandler<PersonCreated>
 {
-    private readonly ILogger<PersonCreatedNotificationHandler> _logger;
-
-    public PersonCreatedNotificationHandler(ILogger<PersonCreatedNotificationHandler> logger)
-    {
-        _logger = logger;
-    }
-
     public async Task HandleAsync(PersonCreated message, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Person created: {FirstName} {LastName} from {City}", 
+        logger.LogInformation("Person created: {FirstName} {LastName} from {City}", 
             message.FirstName, message.LastName, message.City);
         
         // Handle the notification immediately
@@ -81,23 +72,16 @@ public class PersonCreatedNotificationHandler : INotificationHandler<PersonCreat
 
 #### Message Consumer (Queued Processing)
 ```csharp
-public class ProductCreatedConsumer : IConsumer<ProductCreated>
+public class ProductCreatedConsumer(ILogger<ProductCreatedConsumer> logger) : IConsumer<ProductCreated>
 {
-    private readonly ILogger<ProductCreatedConsumer> _logger;
-
-    public ProductCreatedConsumer(ILogger<ProductCreatedConsumer> logger)
-    {
-        _logger = logger;
-    }
-
     public async Task HandleAsync(ProductCreated message, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Processing product: {ProductName}...", message.Name);
+        logger.LogInformation("Processing product: {ProductName}...", message.Name);
         
         // Simulate processing
         await Task.Delay(1000, cancellationToken);
         
-        _logger.LogInformation("Product processed: {ProductName}", message.Name);
+        logger.LogInformation("Product processed: {ProductName}", message.Name);
     }
 }
 ```
@@ -106,24 +90,15 @@ public class ProductCreatedConsumer : IConsumer<ProductCreated>
 
 ```csharp
 // In your controllers or services
-public class PersonController : ControllerBase
+public class PersonController(
+    INotificationPublisher notificationPublisher,
+    IMessagePublisher messagePublisher) : ControllerBase
 {
-    private readonly INotificationPublisher _notificationPublisher;
-    private readonly IMessagePublisher _messagePublisher;
-
-    public PersonController(
-        INotificationPublisher notificationPublisher,
-        IMessagePublisher messagePublisher)
-    {
-        _notificationPublisher = notificationPublisher;
-        _messagePublisher = messagePublisher;
-    }
-
     [HttpPost("person")]
     public async Task<IActionResult> CreatePerson(PersonCreated person)
     {
         // Publish notification (handled immediately)
-        await _notificationPublisher.NotifyAsync(person);
+        await notificationPublisher.NotifyAsync(person);
         return Ok();
     }
 
@@ -131,7 +106,7 @@ public class PersonController : ControllerBase
     public async Task<IActionResult> CreateProduct(ProductCreated product)
     {
         // Publish message (queued for processing)
-        await _messagePublisher.PublishAsync(product);
+        await messagePublisher.PublishAsync(product);
         return Accepted();
     }
 }
@@ -236,20 +211,13 @@ catch (Exception ex)
 SimpleTransit properly handles service scoping, especially in ASP.NET Core applications:
 
 ```csharp
-public class DatabaseHandler : INotificationHandler<PersonCreated>
+public class DatabaseHandler(MyDbContext context) : INotificationHandler<PersonCreated>
 {
-    private readonly MyDbContext _context; // Scoped service
-
-    public DatabaseHandler(MyDbContext context)
-    {
-        _context = context; // Will be properly scoped
-    }
-
     public async Task HandleAsync(PersonCreated message, CancellationToken cancellationToken)
     {
         // Use scoped DbContext safely
-        _context.People.Add(new Person { Name = message.FirstName });
-        await _context.SaveChangesAsync(cancellationToken);
+        context.People.Add(new Person { Name = message.FirstName });
+        await context.SaveChangesAsync(cancellationToken);
     }
 }
 ```
@@ -318,39 +286,3 @@ When reporting issues, please include:
 ## License
 
 This project is licensed under the [MIT License](LICENSE.txt).
-
-```
-MIT License
-
-Copyright (c) 2025 Marco Minerva
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## Credits
-
-SimpleTransit is developed and maintained by [Marco Minerva](https://github.com/marcominerva).
-
----
-
-**Package Information:**
-- **NuGet**: [SimpleTransit](https://www.nuget.org/packages/SimpleTransit/), [SimpleTransit.Abstractions](https://www.nuget.org/packages/SimpleTransit.Abstractions/)
-- **Repository**: [https://github.com/marcominerva/SimpleTransit](https://github.com/marcominerva/SimpleTransit)
-- **Author**: Marco Minerva
-- **License**: MIT
