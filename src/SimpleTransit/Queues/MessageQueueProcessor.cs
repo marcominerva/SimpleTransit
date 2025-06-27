@@ -10,28 +10,37 @@ internal class MessageQueueProcessor(SimpleTransitScopeResolver scopeResolver, I
     {
         await foreach (var message in queue.ReadAllAsync(stoppingToken))
         {
-            await using var scope = scopeResolver.CreateAsyncScope();
-
-            var messageType = message.GetType();
-            var consumerType = typeof(IConsumer<>).MakeGenericType(messageType);
-            var handlers = scope.ServiceProvider.GetServices(consumerType).ToList();
-
-            if (handlers.Count == 0)
+            // Process each message concurrently without waiting for completion.
+            _ = Task.Run(async () =>
             {
-                logger.LogWarning("No consumers found for message type {MessageType}", messageType.Name);
-                continue;
+                await ProcessMessageAsync(message, stoppingToken);
+            }, stoppingToken);
+        }
+    }
+
+    private async Task ProcessMessageAsync(IMessage message, CancellationToken cancellationToken)
+    {
+        await using var scope = scopeResolver.CreateAsyncScope();
+
+        var messageType = message.GetType();
+        var consumerType = typeof(IConsumer<>).MakeGenericType(messageType);
+        var handlers = scope.ServiceProvider.GetServices(consumerType).ToList();
+
+        if (handlers.Count == 0)
+        {
+            logger.LogWarning("No consumers found for message type {MessageType}", messageType.Name);
+            return;
+        }
+
+        foreach (var handler in handlers)
+        {
+            try
+            {
+                await InvokeHandlerAsync(consumerType, handler!, message, cancellationToken);
             }
-
-            foreach (var handler in handlers)
+            catch (Exception ex)
             {
-                try
-                {
-                    await InvokeHandlerAsync(consumerType, handler!, message, stoppingToken);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Unexpected error while handling message for type {MessageType} with handler {HandlerType}", messageType.Name, handler!.GetType().Name);
-                }
+                logger.LogError(ex, "Unexpected error while handling message for type {MessageType} with handler {HandlerType}", messageType.Name, handler!.GetType().Name);
             }
         }
     }
