@@ -1,10 +1,23 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
+namespace SimpleTransit;
+
 /// <summary>
 /// Resolves the appropriate service scope for SimpleTransit operations, 
 /// preferring HTTP context scopes when available.
 /// </summary>
+/// <remarks>
+/// <para>
+/// This resolver ensures that service resolution occurs within the correct scope, which is critical
+/// for proper lifetime management of scoped services in ASP.NET Core applications. It automatically
+/// detects whether an HTTP request context is available and uses the appropriate service provider.
+/// </para>
+/// <para>
+/// This component is essential for maintaining proper dependency injection scoping across different
+/// execution contexts, such as HTTP requests and background operations.
+/// </para>
+/// </remarks>
 internal sealed class SimpleTransitScopeResolver(IServiceProvider rootServiceProvider, IHttpContextAccessor httpContextAccessor)
 {
     /// <summary>
@@ -20,7 +33,7 @@ internal sealed class SimpleTransitScopeResolver(IServiceProvider rootServicePro
     /// <para>
     /// If no HTTP context is available (e.g., in background threads or non-HTTP scenarios), the method creates a new asynchronous
     /// service scope from the application's root <see cref="IServiceProvider"/>. The caller is responsible for disposing of this
-    /// scope if <c>IsOwned</c> is <c>true</c> to avoid resource leaks.
+    /// scope if the returned <c>IsOwned</c> value is <see langword="true"/> to avoid resource leaks.
     /// </para>
     /// </remarks>
     /// <returns>
@@ -44,7 +57,7 @@ internal sealed class SimpleTransitScopeResolver(IServiceProvider rootServicePro
     /// Creates a new asynchronous service scope.
     /// </summary>
     /// <remarks>The created <see cref="AsyncServiceScope"/> provides a scoped service provider for resolving
-    /// scoped services. It is the caller's responsibility to dispose  of the returned scope to release
+    /// scoped services. It is the caller's responsibility to dispose of the returned scope to release
     /// resources.</remarks>
     /// <returns>An <see cref="AsyncServiceScope"/> that represents the new service scope.</returns>
     public AsyncServiceScope CreateAsyncScope() =>
