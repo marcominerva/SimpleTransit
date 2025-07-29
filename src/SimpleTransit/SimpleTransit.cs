@@ -3,8 +3,23 @@ using Microsoft.Extensions.Logging;
 
 namespace SimpleTransit;
 
+/// <summary>
+/// The core implementation of SimpleTransit that provides both notification publishing and message publishing capabilities.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This class serves as the central hub for message-based communication within the SimpleTransit system.
+/// It implements both <see cref="INotificationPublisher"/> for immediate, synchronous notification handling
+/// and <see cref="IMessagePublisher"/> for asynchronous, queued message processing.
+/// </para>
+/// <para>
+/// The implementation automatically resolves appropriate handlers and consumers using dependency injection,
+/// ensuring proper scoping and lifecycle management of services.
+/// </para>
+/// </remarks>
 internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<SimpleTransit> logger, IMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
 {
+    /// <inheritdoc />
     public async Task NotifyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : notnull
     {
         (var serviceProvider, var isOwned) = scopeResolver.GetOrCreate();
@@ -44,6 +59,7 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
         }
     }
 
+    /// <inheritdoc />
     public async Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : class, IMessage
     {
         if (queue is null)

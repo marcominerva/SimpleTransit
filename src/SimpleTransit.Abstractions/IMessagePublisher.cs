@@ -4,9 +4,15 @@
 /// Defines a contract for publishing messages to a messaging system.
 /// </summary>
 /// <remarks>
+/// <para>
 /// This interface is designed to abstract the process of sending messages, allowing for flexibility in the underlying
 /// implementation (e.g., message queues, event buses, etc.). It ensures that any class implementing this interface
 /// can publish messages of a specific type that implements <see cref="IMessage"/>.
+/// </para>
+/// <para>
+/// Messages published through this interface are processed asynchronously by registered <see cref="IConsumer{TMessage}"/>
+/// implementations through a message queue, providing better decoupling and fault tolerance compared to direct notification handling.
+/// </para>
 /// </remarks>
 public interface IMessagePublisher
 {
@@ -14,7 +20,7 @@ public interface IMessagePublisher
     /// Publishes a message asynchronously to the messaging system.
     /// </summary>
     /// <typeparam name="TMessage">The type of the message to be published. Must implement <see cref="IMessage"/>.</typeparam>
-    /// <param name="message">The message instance to be published.</param>
+    /// <param name="message">The message instance to be published. Cannot be <see langword="null"/>.</param>
     /// <param name="cancellationToken">
     /// A <see cref="CancellationToken"/> to observe while waiting for the task to complete.
     /// </param>
