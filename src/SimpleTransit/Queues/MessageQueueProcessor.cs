@@ -35,7 +35,14 @@ internal partial class MessageQueueProcessor(SimpleTransitScopeResolver scopeRes
             // Process each message concurrently without waiting for completion.
             _ = Task.Run(async () =>
             {
-                await ProcessMessageAsync(message, stoppingToken);
+                try
+                {
+                    await ProcessMessageAsync(message, stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    LogUnhandledTaskError(ex, message.GetType().Name);
+                }
             }, stoppingToken);
         }
     }
@@ -91,9 +98,12 @@ internal partial class MessageQueueProcessor(SimpleTransitScopeResolver scopeRes
         }
     }
 
-    [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "No consumers found for message type {messageType}")]
+    [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Unhandled error in background task for message type {messageType}")]
+    partial void LogUnhandledTaskError(Exception exception, string messageType);
+
+    [LoggerMessage(EventId = 4, Level = LogLevel.Warning, Message = "No consumers found for message type {messageType}")]
     partial void LogNoConsumersFound(string messageType);
 
-    [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Unexpected error while handling message for type {messageType} with handler {handlerType}")]
+    [LoggerMessage(EventId = 5, Level = LogLevel.Error, Message = "Unexpected error while handling message for type {messageType} with handler {handlerType}")]
     partial void LogMessageHandlingError(Exception exception, string messageType, string handlerType);
 }

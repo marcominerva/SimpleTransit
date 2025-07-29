@@ -18,7 +18,7 @@ namespace SimpleTransit.Queues;
 /// with a persistent message broker or database-backed solution.
 /// </para>
 /// </remarks>
-internal class InMemoryMessageQueue : IMessageQueue
+internal class InMemoryMessageQueue : IMessageQueue, IAsyncDisposable
 {
     private readonly Channel<IMessage> channel = Channel.CreateUnbounded<IMessage>(new()
     {
@@ -32,5 +32,18 @@ internal class InMemoryMessageQueue : IMessageQueue
 
     /// <inheritdoc />
     public Task WriteAsync(IMessage message, CancellationToken cancellationToken)
-        => channel.Writer.WriteAsync(message, cancellationToken).AsTask();
+    {
+        ArgumentNullException.ThrowIfNull(message);
+
+        return channel.Writer.WriteAsync(message, cancellationToken).AsTask();
+    }
+
+    /// <summary>
+    /// Disposes the message queue by completing the writer and waiting for all readers to finish.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        channel.Writer.Complete();
+        await channel.Reader.Completion;
+    }
 }

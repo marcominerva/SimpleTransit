@@ -24,6 +24,8 @@ internal partial class SimpleTransit(SimpleTransitScopeResolver scopeResolver, I
     /// <inheritdoc />
     public async Task NotifyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : notnull
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         (var serviceProvider, var isOwned) = scopeResolver.GetOrCreate();
 
         try
@@ -64,6 +66,8 @@ internal partial class SimpleTransit(SimpleTransitScopeResolver scopeResolver, I
     /// <inheritdoc />
     public async Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : class, IMessage
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         if (queue is null)
         {
             throw new InvalidOperationException("Message queue not available: no consumers defined");
