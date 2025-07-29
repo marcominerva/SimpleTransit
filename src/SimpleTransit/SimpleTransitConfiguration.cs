@@ -50,9 +50,19 @@ public class SimpleTransitConfiguration
     /// <param name="predicate">An optional predicate to filter the types to be registered.</param>
     /// <returns>The current <see cref="SimpleTransitConfiguration"/> instance for method chaining.</returns>
     public SimpleTransitConfiguration RegisterServicesFromAssembly(Assembly assembly, Func<Type, bool>? predicate = null)
+        => RegisterServicesFromAssemblies([assembly], predicate);
+
+    /// <summary>
+    /// Registers services from the specified assemblies. This method scans the assemblies for types implementing
+    /// <see cref="INotificationHandler{T}"/> or <see cref="IConsumer{T}"/> and registers them with the dependency injection container.
+    /// </summary>
+    /// <param name="assemblies">The assemblies to scan for services.</param>
+    /// <param name="predicate">An optional predicate to filter the types to be registered.</param>
+    /// <returns>The current <see cref="SimpleTransitConfiguration"/> instance for method chaining.</returns>
+    public SimpleTransitConfiguration RegisterServicesFromAssemblies(IEnumerable<Assembly> assemblies, Func<Type, bool>? predicate = null)
     {
         var notificationHandlerInterfaceType = typeof(INotificationHandler<>);
-        var notificationHandlersToRegister = GetTypes(assembly, notificationHandlerInterfaceType, predicate);
+        var notificationHandlersToRegister = GetTypes(assemblies, notificationHandlerInterfaceType, predicate);
 
         if (notificationHandlersToRegister.Count > 0)
         {
@@ -61,7 +71,7 @@ public class SimpleTransitConfiguration
         }
 
         var consumerInterfaceType = typeof(IConsumer<>);
-        var consumersToRegister = GetTypes(assembly, consumerInterfaceType, predicate);
+        var consumersToRegister = GetTypes(assemblies, consumerInterfaceType, predicate);
 
         if (consumersToRegister.Count > 0)
         {
@@ -71,12 +81,14 @@ public class SimpleTransitConfiguration
 
         return this;
 
-        static IList<Type> GetTypes(Assembly assembly, Type interfaceType, Func<Type, bool>? predicate = null)
+        static IList<Type> GetTypes(IEnumerable<Assembly> assemblies, Type interfaceType, Func<Type, bool>? predicate = null)
         {
-            var typesToRegister = assembly.GetTypes()
+            var typesToRegister = assemblies
+                .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.IsClass && !type.IsAbstract)
                 .Where(type => type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType))
-                .Where(type => predicate is null || predicate(type)).ToList();
+                .Where(type => predicate is null || predicate(type))
+                .ToList();
 
             return typesToRegister;
         }
