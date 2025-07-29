@@ -17,8 +17,10 @@ namespace SimpleTransit;
 /// ensuring proper scoping and lifecycle management of services.
 /// </para>
 /// </remarks>
-internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<SimpleTransit> logger, IMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
+internal partial class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<SimpleTransit> logger, IMessageQueue? queue = null) : INotificationPublisher, IMessagePublisher
 {
+    private readonly ILogger<SimpleTransit> logger = logger;
+
     /// <inheritdoc />
     public async Task NotifyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : notnull
     {
@@ -31,7 +33,7 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
             var handlers = serviceProvider.GetServices<INotificationHandler<TMessage>>().ToList();
             if (handlers.Count == 0)
             {
-                logger.LogWarning("No handlers found for message type {MessageType}", messageType);
+                LogNoHandlersFound(messageType);
                 return;
             }
 
@@ -43,7 +45,7 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Unexpected error while handling notification for type {MessageType} with handler {HandlerType}", messageType, handler.GetType().Name);
+                    LogNotificationHandlingError(ex, messageType, handler.GetType().Name);
 
                     // Rethrow the exception to the caller.
                     throw;
@@ -69,4 +71,10 @@ internal class SimpleTransit(SimpleTransitScopeResolver scopeResolver, ILogger<S
 
         await queue.WriteAsync(message, cancellationToken);
     }
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "No handlers found for message type {messageType}")]
+    partial void LogNoHandlersFound(string messageType);
+
+    [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Unexpected error while handling notification for type {messageType} with handler {handlerType}")]
+    partial void LogNotificationHandlingError(Exception exception, string messageType, string handlerType);
 }

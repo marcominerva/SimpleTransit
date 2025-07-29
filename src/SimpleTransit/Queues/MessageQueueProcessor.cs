@@ -15,12 +15,13 @@ namespace SimpleTransit.Queues;
 /// allowing for high throughput and efficient resource utilization.
 /// </para>
 /// <para>
-/// The processor automatically resolves the appropriate consumers for each message type using dependency injection
-/// and handles any exceptions that occur during message processing to ensure the service remains stable.
+/// The processor automatically resolves the appropriate consumers for each message type using dependency injection.
 /// </para>
 /// </remarks>
-internal class MessageQueueProcessor(SimpleTransitScopeResolver scopeResolver, IMessageQueue queue, ILogger<MessageQueueProcessor> logger) : BackgroundService
+internal partial class MessageQueueProcessor(SimpleTransitScopeResolver scopeResolver, IMessageQueue queue, ILogger<MessageQueueProcessor> logger) : BackgroundService
 {
+    private readonly ILogger<MessageQueueProcessor> logger = logger;
+
     /// <summary>
     /// Executes the message processing loop, continuously reading messages from the queue
     /// and dispatching them for concurrent processing.
@@ -55,7 +56,7 @@ internal class MessageQueueProcessor(SimpleTransitScopeResolver scopeResolver, I
 
         if (handlers.Count == 0)
         {
-            logger.LogWarning("No consumers found for message type {MessageType}", messageType.Name);
+            LogNoConsumersFound(messageType.Name);
             return;
         }
 
@@ -67,7 +68,7 @@ internal class MessageQueueProcessor(SimpleTransitScopeResolver scopeResolver, I
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Unexpected error while handling message for type {MessageType} with handler {HandlerType}", messageType.Name, handler!.GetType().Name);
+                LogMessageHandlingError(ex, messageType.Name, handler!.GetType().Name);
             }
         }
     }
@@ -89,4 +90,10 @@ internal class MessageQueueProcessor(SimpleTransitScopeResolver scopeResolver, I
             await (Task)consumeMethod.Invoke(handler, [message, cancellationToken])!;
         }
     }
+
+    [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "No consumers found for message type {messageType}")]
+    partial void LogNoConsumersFound(string messageType);
+
+    [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Unexpected error while handling message for type {messageType} with handler {handlerType}")]
+    partial void LogMessageHandlingError(Exception exception, string messageType, string handlerType);
 }
