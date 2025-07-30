@@ -16,11 +16,13 @@ A simple, lightweight implementation of an in-memory publisher/subscriber patter
 SimpleTransit is available as NuGet packages:
 
 ### Main Package
+
 ```bash
 dotnet add package SimpleTransit
 ```
 
 ### Abstractions Package (for shared contracts)
+
 ```bash
 dotnet add package SimpleTransit.Abstractions
 ```
@@ -56,6 +58,7 @@ public record ProductCreated(string Name, string Description, double Price) : IM
 ### 3. Create Handlers
 
 #### Notification Handler (Immediate Processing)
+
 ```csharp
 public class PersonCreatedNotificationHandler(ILogger<PersonCreatedNotificationHandler> logger) : INotificationHandler<PersonCreated>
 {
@@ -70,7 +73,8 @@ public class PersonCreatedNotificationHandler(ILogger<PersonCreatedNotificationH
 }
 ```
 
-#### Message Consumer (Queued Processing)
+#### Message Consumer (Queued background Processing)
+
 ```csharp
 public class ProductCreatedConsumer(ILogger<ProductCreatedConsumer> logger) : IConsumer<ProductCreated>
 {
@@ -89,7 +93,6 @@ public class ProductCreatedConsumer(ILogger<ProductCreatedConsumer> logger) : IC
 ### 4. Publish Messages
 
 ```csharp
-// Using Minimal APIs
 app.MapPost("/api/people", async (PersonCreated person, INotificationPublisher notificationPublisher) =>
 {
     // Publish notification (handled immediately)
@@ -112,13 +115,15 @@ app.MapPost("/api/products", async (ProductCreated product, IMessagePublisher me
 SimpleTransit supports two distinct messaging patterns:
 
 #### 1. Notifications (Immediate Processing)
+
 - **Purpose**: Immediate handling of events
 - **Interface**: `INotificationHandler<T>`
 - **Publisher**: `INotificationPublisher`
 - **Execution**: Notifications are handled in the same context of the caller that invokes `NotifyAsync`
 - **Use Cases**: Logging, immediate side effects, real-time updates
 
-#### 2. Messages (Queued Processing)
+#### 2. Messages (Queued background Processing)
+
 - **Purpose**: Reliable, background processing
 - **Interface**: `IConsumer<T>` where `T : IMessage`
 - **Publisher**: `IMessagePublisher`
@@ -165,6 +170,7 @@ builder.Services.AddSimpleTransit(options =>
 ## Advanced Scenarios
 
 ### Multiple Handlers
+
 Multiple notification handlers can be registered for the same message type:
 
 ```csharp
@@ -186,6 +192,7 @@ public class AuditNotificationHandler : INotificationHandler<PersonCreated>
 ```
 
 ### Error Handling
+
 SimpleTransit propagates exceptions from notification handlers to allow for proper error handling. This is true only for notifications, not for Message Consumers that act in background:
 
 ```csharp
@@ -201,6 +208,7 @@ catch (Exception ex)
 ```
 
 ### Scoped Services
+
 SimpleTransit properly handles service scoping, especially in ASP.NET Core applications:
 
 ```csharp
