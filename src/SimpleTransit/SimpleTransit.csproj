@@ -27,7 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\SimpleTransit.Abstractions\SimpleTransit.Abstractions.csproj" />
+        <PackageReference Include="SimpleTransit.Abstractions" Version="1.0.6" />
     </ItemGroup>
 
     <ItemGroup>
@@ -41,5 +41,5 @@
         </None>
         <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
-    
+   
 </Project>
