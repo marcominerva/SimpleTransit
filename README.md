@@ -1,6 +1,7 @@
 # SimpleTransit
 
 [![Lint Code Base](https://github.com/marcominerva/SimpleTransit/actions/workflows/linter.yml/badge.svg)](https://github.com/marcominerva/SimpleTransit/actions/workflows/linter.yml)
+[![CodeQL](https://github.com/marcominerva/SimpleTransit/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/marcominerva/SimpleTransit/actions/workflows/github-code-scanning/codeql)
 [![Nuget](https://img.shields.io/nuget/v/SimpleTransit)](https://www.nuget.org/packages/SimpleTransit)
 [![Nuget](https://img.shields.io/nuget/dt/SimpleTransit)](https://www.nuget.org/packages/SimpleTransit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/marcominerva/SimpleTransit/blob/master/LICENSE.txt)
