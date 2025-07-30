@@ -193,7 +193,7 @@ public class AuditNotificationHandler : INotificationHandler<PersonCreated>
 
 ### Error Handling
 
-SimpleTransit propagates exceptions from notification handlers to allow for proper error handling. This is true only for notifications, not for Message Consumers that act in background:
+Exceptions thrown by notification handlers are forwarded to the caller, allowing for proper error handling. Exceptions from background message consumers are not propagated.
 
 ```csharp
 try
