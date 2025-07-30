@@ -1,5 +1,10 @@
 # SimpleTransit
 
+[![Lint Code Base](https://github.com/marcominerva/SimpleTransit/actions/workflows/linter.yml/badge.svg)](https://github.com/marcominerva/SimpleTransit/actions/workflows/linter.yml)
+[![Nuget](https://img.shields.io/nuget/v/SimpleTransit)](https://www.nuget.org/packages/SimpleTransit)
+[![Nuget](https://img.shields.io/nuget/dt/SimpleTransit)](https://www.nuget.org/packages/SimpleTransit)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/marcominerva/SimpleTransit/blob/master/LICENSE.txt)
+
 A simple, lightweight implementation of an in-memory publisher/subscriber pattern for .NET applications. SimpleTransit provides a clean and efficient way to implement message-driven architectures using either direct notification handling or queued message processing.
 
 ## Features
