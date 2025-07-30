@@ -10,7 +10,7 @@
         <Authors>Marco Minerva</Authors>
         <Company>Marco Minerva</Company>
         <Product>Common types and interfaces for Simple Transit</Product>
-        <Title>Common types and interfaces for Simple Simple Transit</Title>
+        <Title>Common types and interfaces for Simple Transit</Title>
         <Description>A library that provides common types and interfaces that are used by Simple Transit</Description>
         <PackageId>SimpleTransit.Abstractions</PackageId>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
