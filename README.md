@@ -89,27 +89,20 @@ public class ProductCreatedConsumer(ILogger<ProductCreatedConsumer> logger) : IC
 ### 4. Publish Messages
 
 ```csharp
-// In your controllers or services
-public class PersonController(
-    INotificationPublisher notificationPublisher,
-    IMessagePublisher messagePublisher) : ControllerBase
+// Using Minimal APIs
+app.MapPost("/api/people", async (PersonCreated person, INotificationPublisher notificationPublisher) =>
 {
-    [HttpPost("person")]
-    public async Task<IActionResult> CreatePerson(PersonCreated person)
-    {
-        // Publish notification (handled immediately)
-        await notificationPublisher.NotifyAsync(person);
-        return Ok();
-    }
+    // Publish notification (handled immediately)
+    await notificationPublisher.NotifyAsync(person);
+    return TypedResults.Ok();
+});
 
-    [HttpPost("product")]
-    public async Task<IActionResult> CreateProduct(ProductCreated product)
-    {
-        // Publish message (queued for processing)
-        await messagePublisher.PublishAsync(product);
-        return Accepted();
-    }
-}
+app.MapPost("/api/products", async (ProductCreated product, IMessagePublisher messagePublisher) =>
+{
+    // Publish message (queued for processing)
+    await messagePublisher.PublishAsync(product);
+    return TypedResults.Accepted();
+});
 ```
 
 ## Usage Patterns
@@ -118,11 +111,11 @@ public class PersonController(
 
 SimpleTransit supports two distinct messaging patterns:
 
-#### 1. Notifications (Fire-and-Forget)
+#### 1. Notifications (Immediate Processing)
 - **Purpose**: Immediate handling of events
 - **Interface**: `INotificationHandler<T>`
 - **Publisher**: `INotificationPublisher`
-- **Execution**: Synchronous execution of all registered handlers
+- **Execution**: Notifications are handled in the same context of the caller that invokes `NotifyAsync`
 - **Use Cases**: Logging, immediate side effects, real-time updates
 
 #### 2. Messages (Queued Processing)
@@ -193,17 +186,17 @@ public class AuditNotificationHandler : INotificationHandler<PersonCreated>
 ```
 
 ### Error Handling
-SimpleTransit propagates exceptions from handlers to allow for proper error handling:
+SimpleTransit propagates exceptions from notification handlers to allow for proper error handling. This is true only for notifications, not for Message Consumers that act in background:
 
 ```csharp
 try
 {
-    await _notificationPublisher.NotifyAsync(message);
+    await notificationPublisher.NotifyAsync(message);
 }
 catch (Exception ex)
 {
     // Handle errors from any of the notification handlers
-    _logger.LogError(ex, "Error processing notification");
+    logger.LogError(ex, "Error processing notification");
 }
 ```
 
@@ -247,7 +240,7 @@ cd samples/SimpleTransitSample
 dotnet run
 ```
 
-Then navigate to the Swagger UI at `https://localhost:5001/swagger` to test the API endpoints.
+Then navigate to the Swagger UI at the URL specified in the console to test the API endpoints.
 
 ## Contributing
 
