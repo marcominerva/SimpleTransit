@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SimpleTransit.Queues;
 
 namespace SimpleTransit;
@@ -27,23 +28,23 @@ public static class SimpleTransitExtensions
             // Register core SimpleTransit services.
             services.AddHttpContextAccessor();
 
-            services.AddSingleton<SimpleTransitScopeResolver>();
-            services.AddSingleton<SimpleTransit>();
+            services.TryAddSingleton<SimpleTransitScopeResolver>();
+            services.TryAddSingleton<SimpleTransit>();
         }
 
         if (configuration.ContainsNotificationHandlers)
         {
             // Register INotificationPublisher interface only if there are actual handlers.
-            services.AddSingleton<INotificationPublisher>(services => services.GetRequiredService<SimpleTransit>());
+            services.TryAddSingleton<INotificationPublisher>(services => services.GetRequiredService<SimpleTransit>());
         }
 
         if (configuration.ContainsMessageConsumers)
         {
             // Register IMessagePublisher interface and related services only if there are actual consumers.
-            services.AddSingleton<IMessageQueue, InMemoryMessageQueue>();
+            services.TryAddSingleton<IMessageQueue, InMemoryMessageQueue>();
             services.AddHostedService<MessageQueueProcessor>();
 
-            services.AddSingleton<IMessagePublisher>(services => services.GetRequiredService<SimpleTransit>());
+            services.TryAddSingleton<IMessagePublisher>(services => services.GetRequiredService<SimpleTransit>());
         }
 
         return services;

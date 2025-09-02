@@ -17,14 +17,12 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseHttpsRedirection();
 
-if (app.Environment.IsDevelopment())
+app.MapOpenApi();
+
+app.UseSwaggerUI(options =>
 {
-    app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", app.Environment.ApplicationName);
-    });
-}
+    options.SwaggerEndpoint("/openapi/v1.json", app.Environment.ApplicationName);
+});
 
 app.MapPost("/api/people", async (Person person, INotificationPublisher notificationPublisher) =>
 {
