@@ -1,5 +1,5 @@
 <Solution>
-  <Folder Name="/Samples/">
+  <Folder Name="/samples/">
     <Project Path="samples/SimpleTransitSample/SimpleTransitSample.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
@@ -9,6 +9,8 @@
     <File Path="src/Directory.Build.props" />
     <File Path="Toolbox.png" />
   </Folder>
-  <Project Path="src/SimpleTransit.Abstractions/SimpleTransit.Abstractions.csproj" />
-  <Project Path="src/SimpleTransit/SimpleTransit.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/SimpleTransit.Abstractions/SimpleTransit.Abstractions.csproj" />
+    <Project Path="src/SimpleTransit/SimpleTransit.csproj" />
+  </Folder>
 </Solution>
