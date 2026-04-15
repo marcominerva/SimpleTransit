@@ -15,7 +15,7 @@ A simple, lightweight implementation of an in-memory publisher/subscriber patter
 - **ASP.NET Core Ready**: Built-in support for HTTP context-aware scoping
 - **Type-Safe**: Strongly-typed message handling with generic interfaces
 - **Minimal Dependencies**: Lightweight with minimal external dependencies
-- **Multi-Target Support**: Compatible with .NET 8.0 and .NET 9.0
+- **Multi-Target Support**: Compatible with .NET 8.0, 9.0 and 10.0
 
 ## Installation
 
