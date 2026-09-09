@@ -4,9 +4,7 @@
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
-    <File Path="README.md" />
     <File Path="src/Directory.Build.props" />
-    <File Path="Toolbox.png" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/SimpleTransit.Abstractions/SimpleTransit.Abstractions.csproj" />
